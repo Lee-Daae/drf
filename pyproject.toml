@@ -1,0 +1,15 @@
+[project]
+name = "VueDjAgency"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Lee-Daae", email = "da.lee@haezoom.com"},
+]
+dependencies = ["django>=5.1.4", "djangorestframework>=3.15.2", "markdown>=3.7", "django-filter>=24.3", "Pillow>=11.0.0"]
+requires-python = "==3.13.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
