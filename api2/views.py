@@ -17,9 +17,10 @@
 #     queryset = Comment.objects.all()
 #     serializer_class = CommentSerializer
 
-from api2.serializers import CommentSerializer, PostListSerializer, PostRetrieveSerializer
+from api2.serializers import CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
 from blog.models import Comment, Post
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.response import Response
 
 class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
@@ -32,3 +33,26 @@ class PostRetrieveAPIView(RetrieveAPIView):
 class CommentCreateAPIView(CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+# patch 메소드 구현, UpdateAPIView는 put과 patch 만 가능
+class PostLikeAPIView(UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostLikeSerializer
+    http_method_names = ['put', 'patch'] 
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        # data = instance.like + 1 딕셔너리가 아니라 숫자만 나오게 하려고 하면 drf serializer : dict-like 기반이라 오류나서 response 바꿔야 됨
+        data = {'like': instance.like + 1}
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        #return Response(serializer.data)
+        return Response(data['like'])
