@@ -17,7 +17,7 @@
 #     queryset = Comment.objects.all()
 #     serializer_class = CommentSerializer
 
-from api2.serializers import CatetagSerializer, CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
+from api2.serializers import CateTagSerializer, CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
 from blog.models import Category, Comment, Post, Tag
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -69,5 +69,5 @@ class CateTagAPIView(APIView):
             'cateList' : cateList,
             'tagList' : tagList,
         }
-        serializer = CatetagSerializer(instance=data)
+        serializer = CateTagSerializer(instance=data)
         return Response(serializer.data)
