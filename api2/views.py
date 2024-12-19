@@ -17,10 +17,11 @@
 #     queryset = Comment.objects.all()
 #     serializer_class = CommentSerializer
 
-from api2.serializers import CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
-from blog.models import Comment, Post
+from api2.serializers import CatetagSerializer, CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
+from blog.models import Category, Comment, Post, Tag
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
@@ -38,7 +39,6 @@ class CommentCreateAPIView(CreateAPIView):
 class PostLikeAPIView(UpdateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostLikeSerializer
-    http_method_names = ['put', 'patch'] 
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -56,3 +56,18 @@ class PostLikeAPIView(UpdateAPIView):
 
         #return Response(serializer.data)
         return Response(data['like'])
+    
+class CateTagAPIView(APIView):
+    # Cannot apply DjangoModelPermissionsOrAnonReadOnly on a view that does not set `.queryset` or have a `.get_queryset()` method.
+    def get_queryset(self):
+        return Category.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        cateList = Category.objects.all()
+        tagList = Tag.objects.all()
+        data = {
+            'cateList' : cateList,
+            'tagList' : tagList,
+        }
+        serializer = CatetagSerializer(instance=data)
+        return Response(serializer.data)

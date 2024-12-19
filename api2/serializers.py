@@ -1,6 +1,6 @@
 
 from django.contrib.auth.models import User
-from blog.models import Comment, Post
+from blog.models import Category, Comment, Post, Tag
 from rest_framework import serializers
 
 
@@ -32,3 +32,18 @@ class PostLikeSerializer(serializers.ModelSerializer):
         model = Post
         #fields = '__all__'
         fields = ['like']
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['name']
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
+class CatetagSerializer(serializers.Serializer):
+    cateList = CategorySerializer(many = True)
+    tagList = TagSerializer(many = True)
