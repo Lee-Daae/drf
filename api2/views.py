@@ -18,7 +18,7 @@
 #     serializer_class = CommentSerializer
 
 #from api2.serializers import CateTagSerializer, CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
-from api2.serializers import CateTagSerializer, CommentSerializer, PostListSerializer, PostRetrieveSerializer
+from api2.serializers import CateTagSerializer, CommentSerializer, PostListSerializer, PostRetrieveSerializer, PostSerializerDetail
 from blog.models import Category, Comment, Post, Tag
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -29,9 +29,9 @@ from rest_framework.views import APIView
 #     queryset = Post.objects.all()
 #     serializer_class = PostListSerializer
 
-class PostRetrieveAPIView(RetrieveAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostRetrieveSerializer
+# class PostRetrieveAPIView(RetrieveAPIView):
+#     queryset = Post.objects.all()
+#     serializer_class = PostRetrieveSerializer
 
 class CommentCreateAPIView(CreateAPIView):
     queryset = Comment.objects.all()
@@ -117,3 +117,48 @@ class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostListSerializer
     pagination_class = PostPageNumberPagination
+# 'request':None 으로 링크 출력포맷 수정
+    def get_serializer_context(self):
+        return {
+            'request':None,
+            'format':self.format_kwarg,
+            'view':self
+        }
+
+def get_prev_next(instance):
+    try:
+        prev = instance.get_previous_by_update_dt()
+    except instance.DoesNotExist:
+        prev = None
+    
+    try:
+        next_ = instance.get_next_by_update_dt()
+    except instance.DoesNotExist:
+        next_ = None
+
+    return prev, next_
+
+class PostRetrieveAPIView(RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializerDetail
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        #prevInstance = instance.get_previous_by_update_dt()
+        #nextInstance = instance.get_next_by_update_dt()
+        prevInstance, nextInstance = get_prev_next(instance)
+        commentList = instance.comment_set.all()# orm 쿼리 문장
+        data = {
+            'post' : instance,
+            'prevPost' : prevInstance,
+            'nextPost' : nextInstance,
+            'commentList' : commentList,            
+        }
+        serializer = self.get_serializer(instance=data)
+        return Response(serializer.data)
+    def get_serializer_context(self):
+        return {
+            'request':None,
+            'format':self.format_kwarg,
+            'view':self
+        }
