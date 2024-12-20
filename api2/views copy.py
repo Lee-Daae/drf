@@ -18,14 +18,12 @@
 #     serializer_class = CommentSerializer
 
 #from api2.serializers import CateTagSerializer, CommentSerializer, PostLikeSerializer, PostListSerializer, PostRetrieveSerializer
-from api.utils import obj_to_comment, obj_to_post, prev_next_post
 from api2.serializers import CateTagSerializer, CommentSerializer, PostListSerializer, PostRetrieveSerializer, PostSerializerDetail
 from blog.models import Category, Comment, Post, Tag
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 
 # class PostListAPIView(ListAPIView):
 #     queryset = Post.objects.all()
@@ -141,56 +139,23 @@ def get_prev_next(instance):
     return prev, next_
 
 class PostRetrieveAPIView(RetrieveAPIView):
-    #queryset = Post.objects.all()
-    #serializer_class = PostSerializerDetail
-    def get_queryset(self):
-        return Post.objects.all().select_related('category').prefetch_related('tags', 'comment_set')
-
+    queryset = Post.objects.all()
+    serializer_class = PostSerializerDetail
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         #prevInstance = instance.get_previous_by_update_dt()
         #nextInstance = instance.get_next_by_update_dt()
-        #prevInstance, nextInstance = get_prev_next(instance)
+        prevInstance, nextInstance = get_prev_next(instance)
         commentList = instance.comment_set.all()# orm 쿼리 문장
-
-        postDict = obj_to_post(instance)
-        prevDict, nextDict = prev_next_post(instance)
-        commentDict = [obj_to_comment(c) for c in commentList]
-
-        dataDict = {
-            'post' : postDict,
-            'prevPost' : prevDict,
-            'nextPost' : nextDict,
-            'commentList' : commentDict,
+        data = {
+            'post' : instance,
+            'prevPost' : prevInstance,
+            'nextPost' : nextInstance,
+            'commentList' : commentList,            
         }
-
-        return Response(dataDict)
-
-        # data = {
-        #     'post' : instance,
-        #     'prevPost' : prevInstance,
-        #     'nextPost' : nextInstance,
-        #     'commentList' : commentList,            
-        # }
-        # serializer = self.get_serializer(instance=data)
-        # return Response(serializer.data)
-    # def get_serializer_context(self):
-    #     return {
-    #         'request':None,
-    #         'format':self.format_kwarg,
-    #         'view':self
-    #     }   postDict = obj_to_post(instance)
-        prevDict, nextDict = prev_next_post(instance)
-        commentDict = [obj_to_comment(c) for c in commentList]
-
-   
-    
-class PostViewSet(ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostListSerializer
-    pagination_class = PostPageNumberPagination
-
+        serializer = self.get_serializer(instance=data)
+        return Response(serializer.data)
     def get_serializer_context(self):
         return {
             'request':None,
