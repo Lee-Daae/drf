@@ -21,12 +21,13 @@
 from api2.serializers import CateTagSerializer, CommentSerializer, PostListSerializer, PostRetrieveSerializer
 from blog.models import Category, Comment, Post, Tag
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-class PostListAPIView(ListAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostListSerializer
+# class PostListAPIView(ListAPIView):
+#     queryset = Post.objects.all()
+#     serializer_class = PostListSerializer
 
 class PostRetrieveAPIView(RetrieveAPIView):
     queryset = Post.objects.all()
@@ -96,3 +97,23 @@ class CateTagAPIView(APIView):
         }
         serializer = CateTagSerializer(instance=data)
         return Response(serializer.data)
+
+# https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+# 위 링크의 StandardResultsSetPagination 오버라이딩
+class PostPageNumberPagination(PageNumberPagination):
+    page_size = 3
+    #page_size_query_param = 'page_size'
+    #max_page_size = 1000
+
+# 오버라이딩
+    def get_paginated_response(self, data):
+        return Response({
+            'postList': data,
+            'pageCnt': self.page.paginator.num_pages,
+            'curPage': self.page.number,
+        })
+
+class PostListAPIView(ListAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostListSerializer
+    pagination_class = PostPageNumberPagination
